@@ -58,7 +58,7 @@ python generator.py --prompt "grainy photo of a UFO at night"
 
 **Original Generated Image**
 
-![](examples/4733a2b789114e60b5c31fae9abd2803.png)
+![](examples/d3c0618bc28d4f869bed43e997674783.png)
 
 ## Verifying Watermarked Images
 
