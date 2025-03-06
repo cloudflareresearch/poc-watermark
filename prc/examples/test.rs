@@ -3,7 +3,7 @@
 use rand::prelude::*;
 use std::time::Instant;
 
-use prc::{LdpcCode, PrfCode, ZeroBitCode};
+use prc::{Ldpc2Code, LdpcCode, PrfCode, ZeroBitCode};
 
 fn run_test<C: ZeroBitCode>(code: &C, p: f64) {
     let mut rng = thread_rng();
@@ -53,6 +53,19 @@ fn run_test<C: ZeroBitCode>(code: &C, p: f64) {
 }
 
 fn main() {
+    println!("LDPC2 w/ plausibly pseudorandom parameters");
+    run_test(
+        &Ldpc2Code {
+            n: 16_384,
+            t: 8,
+            lambda: 50,
+            eta: 0.006,
+            num_test_bits: 20,
+        },
+        0.05,
+    );
+    println!("");
+
     println!("LDPC w/ plausibly pseudorandom parameters");
     run_test(&LdpcCode::new(16_384, 10, 0.05, 0.75), 0.02);
     println!("");
@@ -60,19 +73,6 @@ fn main() {
     println!("LDPC cranked up as much as possible");
     run_test(&LdpcCode::new(16_384, 1, 0.05, 0.75), 0.33);
     println!("");
-
-    //println!("LDPC2 w/ plausibly pseudorandom parameters");
-    //run_test(
-    //    &Ldpc2Code {
-    //        n: 16_384,
-    //        t: 10,
-    //        lambda: 118,
-    //        eta: 0.0054,
-    //        num_test_bits: 20,
-    //    },
-    //    0.10,
-    //);
-    //println!("");
 
     println!("PRF w/ somewhat pseudorandom parameters");
     run_test(

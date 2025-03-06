@@ -344,7 +344,7 @@ mod ldpc_tests {
     }
 }
 
-/// A second LDPC-based code from aarxiv.org/abs/2410.07369.
+/// The LDPC-based code from aarxiv.org/abs/2410.07369.
 pub struct Ldpc2Code {
     /// The codeword length.
     pub n: usize,
@@ -397,12 +397,76 @@ impl ZeroBitCode for Ldpc2Code {
         let otp = rand_bit_vec(&mut rng, self.n);
         let testbits = rand_bit_vec(&mut rng, self.num_test_bits);
 
-        // Algorithm 1, Lines 8-13: Sample the generator and parity check matrices.
+        // Algorithm 1, Line 8: Sample a random matrix.
         //
-        // NOTE(cjpatton) This appears to be a different sampling procedure than Algorithm 1. I'm
-        // not sure how theirs compares to this one. It may end up being faster and/or more secure.
-        let (generator, parity_check) =
-            generator_matrix_with_trapdoor(&mut rng, self.n, self.t, k, r);
+        // NOTE(cjpatton) The paper says the number of columns should be `self.lambda`, but I
+        // believe they actually mean `k`.
+        let mut g0 = Matrix::new(self.n - r, k);
+        for i in 0..g0.num_rows {
+            for j in 0..g0.num_cols {
+                g0.set(i, j, rng.gen());
+            }
+        }
+
+        // Algorithm 1, Lines 9-13: Sample rows of the parity-check matrix and iteratively compute
+        // the generator matrix.
+        let mut p_rows = Vec::with_capacity(r);
+        let mut g_rows = g0.rows.clone();
+        let g0_t = g0.transpose();
+        for i in 1..=r {
+            let p = self.n - r + i - 1;
+            let w = {
+                let mut w = vec![false; self.n];
+                for j in 0..self.t - 1 {
+                    w[j] = true;
+                }
+                for j in self.t - 1..self.n {
+                    w[j] = false;
+                }
+
+                w[p] = true;
+                w[..p].shuffle(&mut rng);
+                w
+            };
+
+            let mut g_row = Row::new(p);
+            for (j, val) in g0_t.mul_by_vec(&w[..self.n - r]).into_iter().enumerate() {
+                if val {
+                    g_row.js.push(j);
+                }
+            }
+            g_rows.push(g_row);
+
+            let mut p_row = Row::new(i - 1);
+            for (j, val) in w.into_iter().enumerate() {
+                if val {
+                    p_row.js.push(j);
+                }
+            }
+            p_rows.push(p_row);
+        }
+
+        let generator = Matrix {
+            rows: g_rows,
+            num_rows: self.n,
+            num_cols: k,
+        };
+        #[cfg(test)]
+        {
+            println!("generator");
+            generator.pretty_print();
+        }
+
+        let parity_check = Matrix {
+            rows: p_rows,
+            num_rows: r,
+            num_cols: self.n,
+        };
+        #[cfg(test)]
+        {
+            println!("parity check");
+            parity_check.pretty_print();
+        }
 
         // TODO(cjpatton) Algorithm 1, Line 14: Permute the generator and parity-check matrix.
 
@@ -500,11 +564,11 @@ mod ldpc2_tests {
         // here are too small.
         fn test() -> Ldpc2Code {
             Ldpc2Code {
-                n: 500,
-                t: 1,
-                lambda: 9,
-                eta: 0.074,
-                num_test_bits: 20,
+                n: 200,
+                t: 2,
+                lambda: 17,
+                eta: 0.0377761631058549,
+                num_test_bits: 8,
             }
         }
     }
@@ -526,7 +590,6 @@ mod ldpc2_tests {
         }
     }
 
-    #[ignore = "test parameters are too small"]
     #[test]
     fn decode() {
         let code = Ldpc2Code::test();
@@ -536,7 +599,7 @@ mod ldpc2_tests {
         assert!(code.detect(&key, &word))
     }
 
-    #[ignore = "test parameters are too small"]
+    #[ignore = "flaky test. perhaps parameters are too small?"]
     #[test]
     fn decode_edited_codeword() {
         let code = Ldpc2Code::test();
