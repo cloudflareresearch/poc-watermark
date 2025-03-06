@@ -1,8 +1,14 @@
 # Proof of Concept: Generate Watermarked Images from Pseudorandom Codes
 
-This repository demos watermarking for Stable Diffusion using [pseudorandom
+This repository demos a watermark for Stable Diffusion using [pseudorandom
 error-correcting codes](https://eprint.iacr.org/2024/235). For details, see the
 companion [blog post](TODO).
+
+The watermark is similar to ["An Undetectable Watermark for Generative Image
+Models" (ICLR 2025)](https://arxiv.org/abs/2410.07369). Our main goal here was
+to try out the simpler (and hopefully faster) DDIM inversion method for
+approximating the initial latent. Check out [their
+implementation](https://github.com/XuandongZhao/PRC-Watermark).
 
 ## Prerequisites
 
