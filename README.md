@@ -2,7 +2,7 @@
 
 This repository demos a watermark for Stable Diffusion using [pseudorandom
 error-correcting codes](https://eprint.iacr.org/2024/235). For details, see the
-companion [blog post](TODO).
+companion [blog post](https://blog.cloudflare.com/an-early-look-at-cryptographic-watermarks-for-ai-generated-content/).
 
 The watermark is similar to ["An Undetectable Watermark for Generative Image
 Models" (ICLR 2025)](https://arxiv.org/abs/2410.07369). Our main goal here was
